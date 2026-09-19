@@ -43,11 +43,18 @@ UPDATE_PACKAGE "tailscale-community" "Tokisaki-Galaxy/luci-app-tailscale-communi
 UPDATE_PACKAGE "lucky" "gdy666/luci-app-lucky" "main" "pkg"
 
 # ---------------------------------------------------------------------------
-# luci-app-oaf (应用过滤，默认禁用 —— 仅加入源码，不在 PRIVATE.txt 中选 y)
+# luci-app-oaf (应用过滤，已启用并随系统启动)
 # 仓库根含 luci-app-oaf(luci 前端) / oaf(kmod) / open-app-filter(后端)，
 # pkg 特例匹配 *oaf* 会同时拷贝三者，保证依赖完整
 # ---------------------------------------------------------------------------
 UPDATE_PACKAGE "oaf" "destan19/OpenAppFilter" "master" "pkg"
+
+# 让 oaf 应用过滤后端(appfilter)在镜像首次启动时自动启用（uci-defaults 覆盖进固件）
+mkdir -p ../files/etc/uci-defaults
+cat > ../files/etc/uci-defaults/zz_oaf_enable <<'EOF'
+/etc/init.d/appfilter enable 2>/dev/null
+exit 0
+EOF
 
 # ---------------------------------------------------------------------------
 # luci-app-pbr (策略路由)
