@@ -27,6 +27,13 @@ UPDATE_PACKAGE "adguardhome" "rufengsuixing/luci-app-adguardhome" "master" ""
 # ---------------------------------------------------------------------------
 UPDATE_PACKAGE "smartdns" "pymumu/openwrt-smartdns" "master" ""
 UPDATE_PACKAGE "luci-app-smartdns" "pymumu/luci-app-smartdns" "master" ""
+# smartdns 进程包走 git clone，其 Makefile 的 PKG_SOURCE_URL 为 https://www.github.com/...
+# CI 中 www.github.com 的 git 克隆常因 301 重定向不被 git smart-http 跟随而失败（download 步骤即报错）。
+# 统一改为 github.com（裸域）以提升下载成功率；目录名可能为 openwrt-smartdns 或 smartdns，均覆盖。
+for _f in openwrt-smartdns/Makefile smartdns/Makefile; do
+	[ -f "$_f" ] && sed -i 's#www\.github\.com#github.com#g' "$_f"
+done
+unset _f
 
 # ---------------------------------------------------------------------------
 # luci-app-tailscale-community (Tailscale 虚拟组网)
