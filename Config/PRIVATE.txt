@@ -75,10 +75,17 @@ CONFIG_PACKAGE_pbr=y
 CONFIG_PACKAGE_luci-app-passwall=y
 
 # ---------- daed（eBPF 代理，需内核 BTF 才能运行） ----------
+# daed 依赖 eBPF CO-RE，运行时需要内核 /sys/kernel/btf/vmlinux（由 BTF 提供）。
+# BTF 由 bpf-headers 用 clang/LLVM 编译内核生成；OpenWrt bpf.mk 默认三种 LLVM 模式
+# （USE_LLVM_HOST / PREBUILT / BUILD）全关时 LLVM_PATH=/invalid → clang 检测为空 →
+# bpf-headers 报错 "LLVM/clang version too old ... found: ." 导致整编中断。
+# CI runner 已装 clang-18 并链接为 /usr/bin/clang，开启 USE_LLVM_HOST=y 即可让 bpf.mk
+# 在 PATH 上探测到 clang（clang-18 >= 12 通过版本校验），daed 才能编译并真正运行。
 CONFIG_PACKAGE_daed=y
 CONFIG_PACKAGE_luci-app-daed=y
 CONFIG_KERNEL_DEBUG_INFO=y
 CONFIG_KERNEL_DEBUG_INFO_BTF=y
+CONFIG_USE_LLVM_HOST=y
 
 # ---------- 启用 Wi-Fi（ath11k 驱动与固件；确保 IPQ60XX-WIFI-YES 含无线） ----------
 # IPQ60XX-WIFI-NO 仅禁用 .config 符号并替换 DTS 为 nowifi，此处显式开启驱动；
