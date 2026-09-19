@@ -52,11 +52,11 @@ CONFIG_PACKAGE_tailscale=y
 CONFIG_PACKAGE_luci-app-lucky=y
 CONFIG_PACKAGE_lucky=y
 
-# ---------- 应用过滤（已启用：含后端 appfilter 与 kmod-oaf，随系统启动） ----------
+# ---------- 应用过滤（已启用：luci-app-oaf + 后端 appfilter，随系统启动） ----------
+# 注意：kmod-oaf 与 oaf(userspace) 由 appfilter/luci-app-oaf 依赖链自动选中，
+# 切勿在此显式 =y，否则 kmod-oaf 自引用会触发 Kconfig 递归依赖错误，导致 make defconfig 中断。
 CONFIG_PACKAGE_luci-app-oaf=y
 CONFIG_PACKAGE_appfilter=y
-CONFIG_PACKAGE_kmod-oaf=y
-CONFIG_PACKAGE_oaf=y
 
 # ---------- 终端 ----------
 CONFIG_PACKAGE_luci-app-ttyd=y
