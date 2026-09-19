@@ -52,8 +52,11 @@ CONFIG_PACKAGE_tailscale=y
 CONFIG_PACKAGE_luci-app-lucky=y
 CONFIG_PACKAGE_lucky=y
 
-# ---------- 应用过滤（默认禁用：仅加入源码，不编译进固件） ----------
-CONFIG_PACKAGE_luci-app-oaf=n
+# ---------- 应用过滤（已启用：含后端 appfilter 与 kmod-oaf，随系统启动） ----------
+CONFIG_PACKAGE_luci-app-oaf=y
+CONFIG_PACKAGE_appfilter=y
+CONFIG_PACKAGE_kmod-oaf=y
+CONFIG_PACKAGE_oaf=y
 
 # ---------- 终端 ----------
 CONFIG_PACKAGE_luci-app-ttyd=y
