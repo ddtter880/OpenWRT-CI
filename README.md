@@ -21,7 +21,8 @@
 
 ## 二、已集成软件包清单（21 个）
 
-所有包均通过 `Config/PRIVATE.txt` 设为 `=y` 编译进固件（除 oaf 默认禁用）。
+所有包均通过 `Config/PRIVATE.txt` 设为 `=y` 编译进固件；应用过滤(oaf)亦已启用，
+并在镜像首次启动时自动开启后端服务。
 框架已自带的部分（argon 主题、diskman、quickfile、easytier、passwall）仅在此补开，不重复注入源码。
 
 ### 主题与界面
@@ -59,7 +60,7 @@
 | `luci-app-sqm` | QoS 智能队列 | ✅ 已启用 |
 | `luci-app-upnp` | UPnP 端口映射 | ✅ 已启用 |
 | `luci-app-ttyd` | 网页终端 | ✅ 已启用 |
-| `luci-app-oaf` | 应用过滤（OpenAppFilter） | ⛔ **默认禁用**（仅加入源码，不在固件中编译；按需手动开启） |
+| `luci-app-oaf` | 应用过滤（OpenAppFilter，含后端 appfilter 与 kmod-oaf） | ✅ 已启用（镜像首次启动自动开启服务） |
 
 ---
 
@@ -90,7 +91,7 @@ istorex 依赖 iStore 后端生态。`Config/PRIVATE.txt` 开启 `luci-app-istor
 | 主机名 | `OWRT` |
 | Wi-Fi 名称 | `OWRT` |
 | Wi-Fi 密码 | `12345678` |
-| 默认主题 | `aurora`（Argon 已随附，可切换） |
+| 默认主题 | `argon`（Argon 主题，已设为默认） |
 
 ---
 
