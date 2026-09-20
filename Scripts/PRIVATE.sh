@@ -75,6 +75,20 @@ UPDATE_PACKAGE "pbr" "stangri/luci-app-pbr" "main" ""
 # 内核 BTF 选项见 Config/PRIVATE.txt
 # ---------------------------------------------------------------------------
 UPDATE_PACKAGE "daed" "QiuSimons/luci-app-daed" "kix" "pkg"
+# ---------------------------------------------------------------------------
+# daed web UI 构建修复（eBPF 代理需要浏览器前端，Go 端 //go:embed "web" 嵌入）
+# 根因：daed 源码仓库的 pnpm-lock.yaml 已过期（@graphql-codegen/cli 版本错位），
+#       而 CI 环境 pnpm 默认 frozen-lockfile，导致 `pnpm install` 直接失败 ->
+#       node_modules 缺失 -> `turbo run build` 报 turbo: not found ->
+#       apps/web/dist 不生成 -> webrender.go 的 //go:embed "web" 失败：
+#       "cannot embed directory web: contains no embeddable files" -> daed 编译失败。
+# 修复：克隆后把 `pnpm install` 改为 `pnpm install --no-frozen-lockfile`，
+#       让 pnpm 按 package.json 重建 lockfile 并继续安装（网络在 CI 中可用）。
+# ---------------------------------------------------------------------------
+if [ -f "./daed/Makefile" ]; then
+	sed -i 's#pnpm install ;#pnpm install --no-frozen-lockfile ;#' "./daed/Makefile"
+fi
+
 
 # ---------------------------------------------------------------------------
 # luci-app-istorex (iStore 应用商店) + iStore 依赖生态
