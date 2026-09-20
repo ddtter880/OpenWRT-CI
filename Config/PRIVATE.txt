@@ -22,10 +22,6 @@ CONFIG_PACKAGE_luci-app-adguardhome=y
 # ---------- 磁盘管理（框架已注入 diskman 源码） ----------
 CONFIG_PACKAGE_luci-app-diskman=y
 
-# ---------- DNS 加速 ----------
-CONFIG_PACKAGE_luci-app-smartdns=y
-CONFIG_PACKAGE_smartdns=y
-
 # ---------- 定时重启（GENERAL 已有，重复声明无害） ----------
 CONFIG_PACKAGE_luci-app-autoreboot=y
 
