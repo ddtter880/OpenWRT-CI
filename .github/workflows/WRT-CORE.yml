@@ -185,6 +185,14 @@ jobs:
 
           make defconfig -j$(nproc) && make clean -j$(nproc)
 
+          # 重新注入私有配置：defconfig 会静默丢弃 immortalwrt Kconfig 未定义的符号
+          # （如 CONFIG_USE_LLVM_HOST），导致 bpf-headers/daed 走 LLVM_PATH:=/invalid 而失败。
+          # rules.mk 在编译期 -include .config，故 defconfig 之后追加即可生效。
+          if [ -f "$GITHUB_WORKSPACE/Config/PRIVATE.txt" ]; then
+            echo "Re-applying private configurations from PRIVATE.txt (post-defconfig)..."
+            cat $GITHUB_WORKSPACE/Config/PRIVATE.txt >> ./.config
+          fi
+
       - name: Download Packages
         if: ${{ !inputs.WRT_TEST }}
         run: |
