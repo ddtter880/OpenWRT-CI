@@ -20,20 +20,6 @@ UPDATE_PACKAGE "dockerman" "lisaac/luci-app-dockerman" "master" "pkg"
 UPDATE_PACKAGE "adguardhome" "rufengsuixing/luci-app-adguardhome" "master" ""
 
 # ---------------------------------------------------------------------------
-# luci-app-smartdns (DNS 加速)
-# 需要两个仓库：进程包 smartdns (pymumu/openwrt-smartdns) + luci 前端
-# 注意顺序：先克隆进程包，再克隆 luci 前端，
-#           避免后者的删除步骤 (*luci-app-smartdns*) 误删前者目录
-# ---------------------------------------------------------------------------
-UPDATE_PACKAGE "smartdns" "pymumu/openwrt-smartdns" "master" ""
-UPDATE_PACKAGE "luci-app-smartdns" "pymumu/luci-app-smartdns" "master" ""
-# smartdns 进程包走 git clone，其 Makefile 的 PKG_SOURCE_URL 为 https://www.github.com/...
-# CI 中 www.github.com 的 git 克隆常因 301 重定向不被 git smart-http 跟随而失败（download 步骤即报错）。
-# 统一改为 github.com（裸域）以提升下载成功率；目录名可能为 openwrt-smartdns 或 smartdns，均覆盖。
-for _f in openwrt-smartdns/Makefile smartdns/Makefile; do
-	[ -f "$_f" ] && sed -i 's#www\.github\.com#github.com#g' "$_f"
-done
-unset _f
 
 # ---------------------------------------------------------------------------
 # luci-app-tailscale-community (Tailscale 虚拟组网)
@@ -86,9 +72,12 @@ UPDATE_PACKAGE "daed" "QiuSimons/luci-app-daed" "kix" "pkg"
 #       让 pnpm 按 package.json 重建 lockfile 并继续安装（网络在 CI 中可用）。
 # ---------------------------------------------------------------------------
 if [ -f "./daed/Makefile" ]; then
-	sed -i 's#pnpm install ;#pnpm install --no-frozen-lockfile ;#' "./daed/Makefile"
+	# 根治 frozen-lockfile：CI 默认 frozen-lockfile=true 且 dae-wing lockfile 过期，
+	# 导致 pnpm install 失败 -> turbo 缺失 -> apps/web/dist 不生成 -> go embed 失败。
+	# 广谱替换所有 pnpm install 为 CI=false pnpm install --no-frozen-lockfile。
+	grep -q -- '--no-frozen-lockfile' "./daed/Makefile" || \
+		sed -i 's#pnpm install#CI=false pnpm install --no-frozen-lockfile#g' "./daed/Makefile"
 fi
-
 
 # ---------------------------------------------------------------------------
 # luci-app-istorex (iStore 应用商店) + iStore 依赖生态
