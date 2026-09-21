@@ -84,3 +84,8 @@ CONFIG_PACKAGE_kmod-ath11k-ahb=y
 CONFIG_PACKAGE_kmod-ath11k-pci=y
 CONFIG_PACKAGE_ath11k-firmware-ipq6018=y
 CONFIG_PACKAGE_ath11k-firmware-qcn9074=y
+# 修复 ath11k 固件包冲突：标准版(ath11k-firmware-ipq6018) 与 DD-WRT 版(ath11k-firmware-ipq6018-ddwrt)
+# 都向 lib/firmware/IPQ6018/ 安装同名固件，apk 组装根文件系统时报 overwrite 冲突 -> package/install 失败。
+# 保留上方标准版 =y，显式关掉 ddwrt 变体（与 IPQ60XX-WIFI-NO.txt 范式一致；验证 run 35549800305）。
+CONFIG_PACKAGE_ath11k-firmware-ipq6018-ddwrt=n
+CONFIG_PACKAGE_ath11k-firmware-qcn9074-ddwrt=n
