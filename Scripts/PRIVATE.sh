@@ -77,6 +77,15 @@ if [ -f "./daed/Makefile" ]; then
 	# 广谱替换所有 pnpm install 为 CI=false pnpm install --no-frozen-lockfile。
 	grep -q -- '--no-frozen-lockfile' "./daed/Makefile" || \
 		sed -i 's#pnpm install#CI=false pnpm install --no-frozen-lockfile#g' "./daed/Makefile"
+
+	# 移除 daed 对 vmlinux-btf 的运行时依赖：本 immortalwrt 分支不提供 vmlinux-btf 包，
+	# daed 默认 CO-RE 的 BTF 来源选择项在 KERNEL_DEBUG_INFO_BTF 不可见时会回退选中
+	# vmlinux-btf，导致 daed.apk depends 含 vmlinux-btf 而无法装包。daed 改用内核
+	# 内置 BTF（CONFIG_KERNEL_DEBUG_INFO_BTF=y 提供 /sys/kernel/btf/vmlinux）。
+	if grep -q -- 'DAED_USE_VMLINUX_BTF:vmlinux-btf' "./daed/Makefile"; then
+		sed -i 's#+@KERNEL_XDP_SOCKETS.*#+@KERNEL_XDP_SOCKETS#' "./daed/Makefile"
+		sed -i '/DAED_USE_VMLINUX_BTF:vmlinux-btf/d' "./daed/Makefile"
+	fi
 fi
 
 # ---------------------------------------------------------------------------
