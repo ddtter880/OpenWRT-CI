@@ -56,37 +56,17 @@ EOF
 UPDATE_PACKAGE "pbr" "stangri/luci-app-pbr" "main" ""
 
 # ---------------------------------------------------------------------------
-# daed (eBPF 代理，需内核 BTF)
-# 仓库根含 daed(进程包) 与 luci-app-daed(luci 前端)，pkg 特例匹配 *daed* 同拷
-# 内核 BTF 选项见 Config/PRIVATE.txt
+# daed (eBPF 代理，需内核 BTF) —— 使用 immortalwrt 官方 feed 版本，不要克隆第三方前端
 # ---------------------------------------------------------------------------
-UPDATE_PACKAGE "daed" "QiuSimons/luci-app-daed" "kix" "pkg"
-# ---------------------------------------------------------------------------
-# daed web UI 构建修复（eBPF 代理需要浏览器前端，Go 端 //go:embed "web" 嵌入）
-# 根因：daed 源码仓库的 pnpm-lock.yaml 已过期（@graphql-codegen/cli 版本错位），
-#       而 CI 环境 pnpm 默认 frozen-lockfile，导致 `pnpm install` 直接失败 ->
-#       node_modules 缺失 -> `turbo run build` 报 turbo: not found ->
-#       apps/web/dist 不生成 -> webrender.go 的 //go:embed "web" 失败：
-#       "cannot embed directory web: contains no embeddable files" -> daed 编译失败。
-# 修复：克隆后把 `pnpm install` 改为 `pnpm install --no-frozen-lockfile`，
-#       让 pnpm 按 package.json 重建 lockfile 并继续安装（网络在 CI 中可用）。
-# ---------------------------------------------------------------------------
-if [ -f "./daed/Makefile" ]; then
-	# 根治 frozen-lockfile：CI 默认 frozen-lockfile=true 且 dae-wing lockfile 过期，
-	# 导致 pnpm install 失败 -> turbo 缺失 -> apps/web/dist 不生成 -> go embed 失败。
-	# 广谱替换所有 pnpm install 为 CI=false pnpm install --no-frozen-lockfile。
-	grep -q -- '--no-frozen-lockfile' "./daed/Makefile" || \
-		sed -i 's#pnpm install#CI=false pnpm install --no-frozen-lockfile#g' "./daed/Makefile"
-
-	# 移除 daed 对 vmlinux-btf 的运行时依赖：本 immortalwrt 分支不提供 vmlinux-btf 包，
-	# daed 默认 CO-RE 的 BTF 来源选择项在 KERNEL_DEBUG_INFO_BTF 不可见时会回退选中
-	# vmlinux-btf，导致 daed.apk depends 含 vmlinux-btf 而无法装包。daed 改用内核
-	# 内置 BTF（CONFIG_KERNEL_DEBUG_INFO_BTF=y 提供 /sys/kernel/btf/vmlinux）。
-	if grep -q -- 'DAED_USE_VMLINUX_BTF:vmlinux-btf' "./daed/Makefile"; then
-		sed -i 's#+@KERNEL_XDP_SOCKETS.*#+@KERNEL_XDP_SOCKETS#' "./daed/Makefile"
-		sed -i '/DAED_USE_VMLINUX_BTF:vmlinux-btf/d' "./daed/Makefile"
-	fi
-fi
+# 【重要·回归教训】曾用 UPDATE_PACKAGE 从 QiuSimons/luci-app-daed (kix) 克隆，它会先
+# 删除官方 feed 的新架构包（feeds/luci/applications/luci-app-daed、feeds/packages/net/daed），
+# 再放入「老式 Lua 界面（luasrc/）」。本固件是 modern LuCI（immortalwrt 23.05+ ucode 架构），
+# 老 Lua 界面依赖 luci-compat 的 Lua 兼容桥（luci.sys / nixio 等不完整），controller 的
+# index() 执行失败 -> entry(...) 菜单静默不注册 -> 用户在 LuCI 里「看不到 daed」。
+# 官方 immortalwrt/luci 的 luci-app-daed 已是 htdocs/（JS + ucode 新架构）；
+# 官方 immortalwrt/packages 的 daed 直接用 GitHub Release 预编译 web.zip（CI 无需跑 pnpm），
+# 依赖 daed-geoip/daed-geosite（<- v2ray-geodata）均来自标准 feed，开箱即用。
+# 因此此处不再克隆 daed 源码，直接用官方 feed。内核 BTF 见 Config/PRIVATE.txt。
 
 # ---------------------------------------------------------------------------
 # luci-app-istorex (iStore 应用商店) + iStore 依赖生态
